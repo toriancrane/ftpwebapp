@@ -7,22 +7,34 @@ from flask import(
     render_template,
     make_response,
     jsonify)
-from functools import wraps
-import random
+import boto3
 import string
 import requests
 import jinja2
 import httplib2
-import time
 import os
-import json
 
 app = Flask(__name__)
 
+s3 = boto3.resource('s3')
+my_bucket = s3.Bucket('mb3-demo-files')
+
 @app.route('/')
+def homePage():
+    return render_template('index.html')
+
+@app.route('/objects')
 def bucketPage():
     """View contents of bucket"""
-    return render_template('bucketcontents.html')
+    objects =  my_bucket.objects.all()
+    return render_template('bucketcontents.html', objects=objects)
+
+@app.route('/upload')
+def uploadPage():
+    """Upload new items to bucket"""
+    #if request.method == 'POST':
+    #else:
+    return render_template('uploadobject.html')
 
 if __name__ == '__main__':
     app.secret_key = 'gDI1tL5OC54UiTF3g18a-bWg'
