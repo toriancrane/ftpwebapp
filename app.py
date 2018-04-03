@@ -7,6 +7,8 @@ from flask import(
     render_template,
     make_response,
     jsonify)
+from warrant import Cognito
+from warrant.aws_srp import AWSSRP
 import boto3
 import string
 import requests
@@ -16,12 +18,28 @@ import os
 
 app = Flask(__name__)
 
+#####     Global Resources    ####
 s3 = boto3.resource('s3')
 my_bucket = s3.Bucket('mb3-demo-files')
 
+auth_client = boto3.client('cognito-idp')
+
+####  App routes  ####
 @app.route('/')
 def homePage():
-    return render_template('index.html')
+    #if request.method == 'POST':
+        #Gather username and password from form
+    #   username = request.form['username]'
+    #   password = request.form['password']
+    
+    #   aws = AWSSRP(username=username, password=password, pool_id='us-west-2_cu4oyzS4u',
+    #               client_id='33gmire0kn5u3eg7m3ah736qsk', client_secret='i2srq6b23s4sfkh89u6kb1e1oo7mefsrinv0deb345vsqiq6d8e',
+    #               client=auth_client)
+    #   tokens = aws.authenticate_user()
+    #   if tokens:
+    #       return render_template('buckets.html')
+    
+    return render_template('buckets.html')
 
 @app.route('/objects')
 def bucketPage():
