@@ -9,6 +9,7 @@ from flask import(
     jsonify)
 from warrant import Cognito
 from warrant.aws_srp import AWSSRP
+from warrant.exceptions import ForceChangePasswordException
 import boto3
 import string
 import requests
@@ -21,32 +22,59 @@ app = Flask(__name__)
 #####     Global Resources    ####
 s3 = boto3.resource('s3')
 my_bucket = s3.Bucket('mb3-demo-files')
+folders = my_bucket.meta.client.list_objects(Bucket=my_bucket.name,
+                                             Delimiter='/')
 
 auth_client = boto3.client('cognito-idp')
+client_id = '5lfps1ae63gbmht8nvem4riccs'
+pool_id = 'us-west-2_8HPGr3Zmo'
+
+### S3 User Methods ####
+# Find all folders that this user has access to
 
 ####  App routes  ####
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def homePage():
-    #if request.method == 'POST':
+    if request.method == 'POST':
         #Gather username and password from form
-    #   username = request.form['username]'
-    #   password = request.form['password']
-    
-    #   aws = AWSSRP(username=username, password=password, pool_id='us-west-2_cu4oyzS4u',
-    #               client_id='33gmire0kn5u3eg7m3ah736qsk', client_secret='i2srq6b23s4sfkh89u6kb1e1oo7mefsrinv0deb345vsqiq6d8e',
-    #               client=auth_client)
-    #   tokens = aws.authenticate_user()
-    #   if tokens:
-    #       return render_template('buckets.html')
-    
-    return render_template('buckets.html')
+        username = request.form['username']
+        password = request.form['password']
+        
+        #Authenticate user login info
+        u = Cognito(pool_id, client_id, username)
+        try:
+            u.authenticate(password)
+            return redirect('/folders')
+        except ForceChangePasswordException:
+            #new_password = request.form['new_password']
+            #u.change_password(password, new_password)
+            u.change_password(password, 'Test@12345')
+            return redirect('/folders')
+            
+        #aws = AWSSRP(username=username, password=password, pool_id=pool_id,
+        #          client_id=client_id, client=auth_client)
+        #tokens = aws.authenticate_user()
 
-@app.route('/objects')
-def bucketPage():
-    """View contents of bucket"""
+        #If user login info authenticated, return buckets page
+        #if tokens:
+        #    return redirect('/folders')
+        #else:
+        #    flash('Unable to authenticate user login information.')
+        #    return redirect('/')
+    else:
+        return render_template('index.html')
+
+@app.route('/folders')
+def foldersPage():
+    """View folders of bucket"""
+    return render_template('folders.html', folders=folders)
+
+@app.route('/contents')
+def contentsPage():
+    """View contents of a folder"""
     objects =  my_bucket.objects.all()
-    return render_template('bucketcontents.html', objects=objects)
-
+    return render_template('contents.html', objects=objects)
+    
 @app.route('/upload')
 def uploadPage():
     """Upload new items to bucket"""
