@@ -21,7 +21,9 @@ app = Flask(__name__)
 
 #####     Global Resources    ####
 s3 = boto3.resource('s3')
-my_bucket = s3.Bucket('mb3-demo-files')
+s3_client = boto3.client("s3")
+demo_bucket = 'mb3-demo-files'
+my_bucket = s3.Bucket(demo_bucket)
 folders = my_bucket.meta.client.list_objects(Bucket=my_bucket.name,
                                              Delimiter='/')
 
@@ -29,8 +31,16 @@ auth_client = boto3.client('cognito-idp')
 client_id = '5lfps1ae63gbmht8nvem4riccs'
 pool_id = 'us-west-2_8HPGr3Zmo'
 
-### S3 User Methods ####
+### S3 Methods ####
 # Find all folders that this user has access to
+def list_folders(bucket_name):
+    paginator = s3_client.get_paginator('list_objects')
+    result = paginator.paginate(Bucket=bucket_name, Delimiter='/')
+    prefixlist = []
+    for prefix in result.search('CommonPrefixes'):
+        prefixlist.append(prefix.get('Prefix').encode('ascii', 'replace').replace('/',''))
+    
+    return prefixlist
 
 ####  App routes  ####
 @app.route('/', methods=['GET', 'POST'])
@@ -67,6 +77,7 @@ def homePage():
 @app.route('/folders')
 def foldersPage():
     """View folders of bucket"""
+    folders = list_folders(demo_bucket)
     return render_template('folders.html', folders=folders)
 
 @app.route('/contents')
