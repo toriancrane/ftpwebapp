@@ -74,7 +74,7 @@ urlgrabber==3.10
 urllib3==1.22
 virtualenv==15.1.0
 warrant==0.6.1
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 wrapt==1.10.11
 yum-metadata-parser==1.1.4
 zope.cachedescriptors==4.3.1
