@@ -25,7 +25,7 @@ future==0.16.0
 futures==3.0.3
 gyp==0.1
 hibagent==1.0.0
-httplib2==0.11.3
+httplib2==0.18.0
 idna==2.6
 ikpdb==1.2.3
 Inflector==2.0.12
